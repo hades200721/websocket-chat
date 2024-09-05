@@ -6,26 +6,26 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppModule = void 0;
+exports.AuthModule = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
-const auth_module_1 = require("./modules/auth.module");
-const users_module_1 = require("./modules/users.module");
-const websockets_gateway_1 = require("./gateway/websockets.gateway");
-let AppModule = class AppModule {
+const auth_controller_1 = require("../controllers/auth.controller");
+const auth_service_1 = require("../services/auth.service");
+const users_module_1 = require("./users.module");
+let AuthModule = class AuthModule {
 };
-exports.AppModule = AppModule;
-exports.AppModule = AppModule = __decorate([
+exports.AuthModule = AuthModule;
+exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            jwt_1.JwtModule.register({
-                secret: process.env.JWT_SECRET || 'yourSecretKey',
-                signOptions: { expiresIn: '1h' },
-            }),
-            auth_module_1.AuthModule,
             users_module_1.UsersModule,
+            jwt_1.JwtModule.register({
+                secret: 'your-secret-key',
+                signOptions: { expiresIn: '60s' },
+            }),
         ],
-        providers: [websockets_gateway_1.WebsocketsGateway],
+        controllers: [auth_controller_1.AuthController],
+        providers: [auth_service_1.AuthService],
     })
-], AppModule);
-//# sourceMappingURL=app.module.js.map
+], AuthModule);
+//# sourceMappingURL=auth.module.js.map

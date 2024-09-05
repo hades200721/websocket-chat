@@ -11,17 +11,30 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebsocketsGateway = void 0;
 const websockets_1 = require("@nestjs/websockets");
+const jwt_1 = require("@nestjs/jwt");
+const common_1 = require("@nestjs/common");
 const socket_io_1 = require("socket.io");
+const jwt_auth_guard_1 = require("../services/jwt-auth.guard");
 let WebsocketsGateway = class WebsocketsGateway {
-    constructor() {
+    constructor(jwtService) {
+        this.jwtService = jwtService;
         this.users = 0;
     }
     afterInit(server) {
         console.log('WebSocket Gateway initialized' + server.toString());
     }
-    handleConnection() {
-        this.users++;
-        this.server.emit('usersOnline', this.users);
+    handleConnection(client) {
+        try {
+            const token = client.handshake.headers.authorization;
+            const user = this.jwtService.verify(token.replace('Bearer ', ''));
+            this.users++;
+            this.server.emit('usersOnline', this.users);
+            console.log(`User connected: ${user.username}`);
+        }
+        catch (error) {
+            console.log('Unauthorized user' + error);
+            client.disconnect();
+        }
     }
     handleDisconnect() {
         this.users--;
@@ -30,6 +43,7 @@ let WebsocketsGateway = class WebsocketsGateway {
     handleMessage(client, payload) {
         console.log(`Message from client ${client.id}: ${payload}`);
         this.server.emit('messageToClient', payload);
+        return { event: 'messageToClient', data: payload };
     }
 };
 exports.WebsocketsGateway = WebsocketsGateway;
@@ -38,16 +52,14 @@ __decorate([
     __metadata("design:type", socket_io_1.Server)
 ], WebsocketsGateway.prototype, "server", void 0);
 __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, websockets_1.SubscribeMessage)('messageToServer'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Object)
 ], WebsocketsGateway.prototype, "handleMessage", null);
 exports.WebsocketsGateway = WebsocketsGateway = __decorate([
-    (0, websockets_1.WebSocketGateway)({
-        cors: {
-            origin: '*',
-        },
-    })
+    (0, websockets_1.WebSocketGateway)({ cors: true }),
+    __metadata("design:paramtypes", [jwt_1.JwtService])
 ], WebsocketsGateway);
 //# sourceMappingURL=websockets.gateway.js.map
