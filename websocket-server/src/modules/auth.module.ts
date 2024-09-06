@@ -8,11 +8,12 @@ import { UsersModule } from './users.module';
   imports: [
     UsersModule, // Import UsersModule to use UsersService
     JwtModule.register({
-      secret: 'your-secret-key', // Replace with your actual secret
-      signOptions: { expiresIn: '60s' },
+      secret: 'a1b2c3d4', // Replace with your actual secret
+      signOptions: { expiresIn: '1h' },
     }),
   ],
   controllers: [AuthController],
   providers: [AuthService],
+  exports: [AuthService],
 })
 export class AuthModule {}

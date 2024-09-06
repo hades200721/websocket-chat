@@ -7,7 +7,7 @@ import { WebsocketsGateway } from './gateway/websockets.gateway';
 @Module({
   imports: [
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'yourSecretKey', // Ensure the secret is available
+      secret: 'a1b2c3d4', // Ensure the secret is available
       signOptions: { expiresIn: '1h' }, // Token expiration time
     }),
     AuthModule,

@@ -1,4 +1,4 @@
-import { OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, WsResponse } from '@nestjs/websockets';
+import { OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { JwtService } from '@nestjs/jwt';
 import { Socket, Server } from 'socket.io';
 export declare class WebsocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -9,5 +9,5 @@ export declare class WebsocketsGateway implements OnGatewayInit, OnGatewayConnec
     afterInit(server: Server): void;
     handleConnection(client: Socket): void;
     handleDisconnect(): void;
-    handleMessage(client: Socket, payload: any): WsResponse<string>;
+    handleMessage(client: Socket, payload: any): void;
 }

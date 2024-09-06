@@ -19,7 +19,7 @@ exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             jwt_1.JwtModule.register({
-                secret: process.env.JWT_SECRET || 'yourSecretKey',
+                secret: 'a1b2c3d4',
                 signOptions: { expiresIn: '1h' },
             }),
             auth_module_1.AuthModule,

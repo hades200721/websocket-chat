@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from 'react';
+import React, {memo, useState, useEffect, useCallback} from 'react';
 import io from 'socket.io-client';
 import {jwtDecode} from 'jwt-decode';
 
-export const Chat = ({token}) => {
+export const Chat = memo(({token}) => {
     const [messages, setMessages] = useState([]);
     const [usersNumber, setUsersNumber] = useState(0);
     const [input, setInput] = useState('');
@@ -10,6 +10,9 @@ export const Chat = ({token}) => {
     const [userName, setUserName] = useState(undefined);
 
     useEffect(() => {
+        console.log('socket ' + socket);
+        console.log('token ' + token);
+
         try {
             const decoded = jwtDecode(token);
             setUserName(decoded.username);
@@ -31,8 +34,9 @@ export const Chat = ({token}) => {
         socketInstance.on('usersOnline', (usersNumberToSet) => {
             setUsersNumber(usersNumberToSet);
         });
-        socketInstance.on('messageToClient', (message) => {
-            setMessages((prevMessages) => [...prevMessages, message]);
+        socketInstance.on('messageToClient', (userName, message) => {
+            const newMessageToSet = `${userName}: ${message}`;
+            setMessages((prevMessages) => [...prevMessages, newMessageToSet]);
         });
 
         setSocket(socketInstance);
@@ -42,17 +46,26 @@ export const Chat = ({token}) => {
         };
     }, [token]);
 
-    const sendMessage = () => {
+    const sendMessage = useCallback(() => {
         if (socket) {
             socket.emit('messageToServer', input);
             setInput('');
         }
-    };
+    }, [input, socket]);
+
+    const onChangeHandler = useCallback((e) => {
+        setInput(e.target.value)
+    }, []);
+
+    const onKeyUpHandler = useCallback((e) => {
+        if (e.key === 'Enter' && sendMessage()) {
+            sendMessage();
+        }
+    }, [sendMessage]);
 
     return (
         <div>
-            <h2>Hello {userName}</h2>
-            <h2>Users online: {usersNumber}</h2>
+            <div style={{display: 'flex'}}><h3>Hello {userName}</h3>, <h4>Users online: {usersNumber}</h4></div>
             <div style={{border: '1px solid #ccc', padding: '10px', height: '300px', overflowY: 'auto'}}>
                 {messages.map((msg, index) => (
                     <div key={index}>{msg}</div>
@@ -60,10 +73,10 @@ export const Chat = ({token}) => {
             </div>
             <input
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyUp={(e) => e.key === 'Enter' && sendMessage()}
+                onChange={onChangeHandler}
+                onKeyUp={onKeyUpHandler}
             />
             <button onClick={sendMessage}>Send</button>
         </div>
     );
-};
+});

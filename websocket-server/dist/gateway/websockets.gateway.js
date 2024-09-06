@@ -12,9 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebsocketsGateway = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const jwt_1 = require("@nestjs/jwt");
-const common_1 = require("@nestjs/common");
 const socket_io_1 = require("socket.io");
-const jwt_auth_guard_1 = require("../services/jwt-auth.guard");
 let WebsocketsGateway = class WebsocketsGateway {
     constructor(jwtService) {
         this.jwtService = jwtService;
@@ -25,7 +23,7 @@ let WebsocketsGateway = class WebsocketsGateway {
     }
     handleConnection(client) {
         try {
-            const token = client.handshake.headers.authorization;
+            const token = client.handshake.auth.token;
             const user = this.jwtService.verify(token.replace('Bearer ', ''));
             this.users++;
             this.server.emit('usersOnline', this.users);
@@ -41,9 +39,9 @@ let WebsocketsGateway = class WebsocketsGateway {
         this.server.emit('usersOnline', this.users);
     }
     handleMessage(client, payload) {
-        console.log(`Message from client ${client.id}: ${payload}`);
-        this.server.emit('messageToClient', payload);
-        return { event: 'messageToClient', data: payload };
+        const token = client.handshake.auth.token;
+        const user = this.jwtService.verify(token.replace('Bearer ', ''));
+        this.server.emit('messageToClient', user.username, payload);
     }
 };
 exports.WebsocketsGateway = WebsocketsGateway;
@@ -52,11 +50,10 @@ __decorate([
     __metadata("design:type", socket_io_1.Server)
 ], WebsocketsGateway.prototype, "server", void 0);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, websockets_1.SubscribeMessage)('messageToServer'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
-    __metadata("design:returntype", Object)
+    __metadata("design:returntype", void 0)
 ], WebsocketsGateway.prototype, "handleMessage", null);
 exports.WebsocketsGateway = WebsocketsGateway = __decorate([
     (0, websockets_1.WebSocketGateway)({ cors: true }),

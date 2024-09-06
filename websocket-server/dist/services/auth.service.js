@@ -21,7 +21,7 @@ let AuthService = class AuthService {
     async validateUser(username, password) {
         const user = await this.usersService.findOne(username);
         if (user && user.password === password) {
-            const { password, ...result } = user;
+            const { ...result } = user;
             return result;
         }
         return null;
@@ -29,7 +29,7 @@ let AuthService = class AuthService {
     async login(user) {
         const payload = { username: user.username, sub: user.userId };
         return {
-            access_token: this.jwtService.sign(payload),
+            access_token: this.jwtService.sign(payload, { secret: 'a1b2c3d4' }),
         };
     }
 };

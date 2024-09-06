@@ -8,9 +8,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { JwtService } from '@nestjs/jwt';
-import { UseGuards } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
-import { JwtAuthGuard } from '../services/jwt-auth.guard'; // Create a custom WebSocket Auth Guard
 
 @WebSocketGateway({ cors: true })
 export class WebsocketsGateway
@@ -27,7 +25,7 @@ export class WebsocketsGateway
 
   handleConnection(client: Socket) {
     try {
-      const token = client.handshake.headers.authorization;
+      const token = client.handshake.auth.token;
       const user = this.jwtService.verify(token.replace('Bearer ', ''));
       this.users++;
       this.server.emit('usersOnline', this.users as any);
@@ -42,11 +40,11 @@ export class WebsocketsGateway
     this.users--;
     this.server.emit('usersOnline', this.users as any);
   }
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @SubscribeMessage('messageToServer')
-  handleMessage(client: Socket, payload: any): WsResponse<string> {
-    console.log(`Message from client ${client.id}: ${payload}`);
-    this.server.emit('messageToClient', payload);
-    return { event: 'messageToClient', data: payload };
+  handleMessage(client: Socket, payload: any): void {
+    const token = client.handshake.auth.token;
+    const user = this.jwtService.verify(token.replace('Bearer ', ''));
+    this.server.emit('messageToClient', user.username, payload);
   }
 }
